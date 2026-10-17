@@ -1,0 +1,10 @@
+{
+  "name": "monish-game-dev-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cinematic game developer portfolio for Monish Dhanvantar Sambangi",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  }
+}
