@@ -25,7 +25,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23e52521'/%3E%3Cpath d='M32 6 L58 32 L32 58 L6 32 Z' fill='none' stroke='%23fac000' stroke-width='2.5'/%3E%3Ctext x='32' y='39' font-family='Georgia' font-size='22' fill='%23ffffff' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/game.css">
 </head>
@@ -96,11 +96,7 @@
 <div class="reader" id="reader" hidden>
 
 <a class="skip-link" href="#main">Skip to content</a>
-<div class="grain" aria-hidden="true"></div>
 <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
-<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
-<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
-<div class="noise-vignette" aria-hidden="true"></div>
 
 <!-- ══════════ NAV ══════════ -->
 <header class="nav" id="nav">
@@ -147,28 +143,9 @@
 
 <!-- ══════════ HERO ══════════ -->
 <section class="hero" id="home" aria-label="Introduction">
-  <div class="hero-bg" aria-hidden="true">
-    <canvas class="hero-canvas" id="heroCanvas"></canvas>
-    <div class="arch-scene">
-      <div class="arch arch-1"></div>
-      <div class="arch arch-2"></div>
-      <div class="arch arch-3"></div>
-      <div class="arch arch-4"></div>
-    </div>
-    <div class="hero-glow"></div>
-    <div class="hero-beam"></div>
-    <div class="hero-fog"></div>
-  </div>
+  <div class="hero-bg" aria-hidden="true"></div>
 
   <div class="container hero-content">
-    <div class="hero-emblem hero-anim" aria-hidden="true">
-      <svg viewBox="0 0 64 64">
-        <path d="M32 4 L60 32 L32 60 L4 32 Z" fill="none" stroke="#e52521" stroke-width="1.6"/>
-        <path d="M32 12 L52 32 L32 52 L12 32 Z" fill="none" stroke="rgba(229,37,33,.3)" stroke-width="1"/>
-        <path d="M32 20 L44 32 L32 44 L20 32 Z" fill="rgba(229,37,33,.12)" stroke="rgba(229,37,33,.5)" stroke-width="0.8"/>
-      </svg>
-    </div>
-
     <p class="hero-label hero-anim d1">Game Developer &nbsp;/&nbsp; Software Engineer</p>
 
     <h1 class="hero-anim d2">
@@ -192,14 +169,7 @@
       <div><b>Based in</b> India</div>
     </div>
   </div>
-
-  <div class="scroll-indicator hero-anim d6" aria-hidden="true">
-    <span>Scroll</span>
-    <span class="stem"></span>
-  </div>
 </section>
-
-<div class="divider" aria-hidden="true"><span class="gem"></span></div>
 
 <!-- ══════════ TECH TICKER ══════════ -->
 <div class="ticker" aria-hidden="true">
@@ -243,8 +213,7 @@
       </div>
 
       <div class="about-visual reveal" data-delay="2">
-        <div class="about-frame" role="img" aria-label="Decorative architectural monogram for Monish">
-          <div class="inner-arch" aria-hidden="true"></div>
+        <div class="about-frame" role="img" aria-label="Decorative monogram for Monish">
           <span class="monogram">M</span>
         </div>
         <p class="about-caption">Monish Dhanvantar — Game Developer</p>
@@ -252,8 +221,6 @@
     </div>
   </div>
 </section>
-
-<div class="divider" aria-hidden="true"><span class="gem"></span></div>
 
 <!-- ══════════ PROJECTS ══════════ -->
 <section id="projects" class="alt-bg">
@@ -272,8 +239,6 @@
   </div>
 </section>
 
-<div class="divider" aria-hidden="true"><span class="gem"></span></div>
-
 <!-- ══════════ SKILLS ══════════ -->
 <section id="skills">
   <div class="container">
@@ -288,8 +253,6 @@
     </div>
   </div>
 </section>
-
-<div class="divider" aria-hidden="true"><span class="gem"></span></div>
 
 <!-- ══════════ PHILOSOPHY ══════════ -->
 <section id="philosophy" class="alt-bg">
@@ -319,8 +282,6 @@
   </div>
 </section>
 
-<div class="divider" aria-hidden="true"><span class="gem"></span></div>
-
 <!-- ══════════ JOURNEY ══════════ -->
 <section id="journey">
   <div class="container">
@@ -335,8 +296,6 @@
     </div>
   </div>
 </section>
-
-<div class="divider" aria-hidden="true"><span class="gem"></span></div>
 
 <!-- ══════════ CONTACT ══════════ -->
 <section id="contact" class="alt-bg">
@@ -478,7 +437,6 @@
 
 <script src="js/vendor/gsap.min.js"></script>
 <script src="js/vendor/ScrollTrigger.min.js"></script>
-<script src="js/vendor/three.min.js"></script>
 <script src="js/data.js"></script>
 <script src="js/main.js"></script>
 <script src="js/advanced.js"></script>
