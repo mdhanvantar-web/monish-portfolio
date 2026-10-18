@@ -27,8 +27,73 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/game.css">
 </head>
-<body>
+<body class="mode-game">
+
+<!-- ══════════ GAME — the primary experience ══════════ -->
+<div class="game-root" id="gameRoot">
+  <div class="game-stage">
+    <canvas id="gameCanvas" width="960" height="544" aria-label="Playable portfolio — guide the explorer through the world"></canvas>
+
+    <div class="game-hud">
+      <span class="hud-badge" id="hudZone">The Outer Gate</span>
+      <span class="hud-right">
+        <span class="hud-relics" title="Relics collected"><span class="hud-gem" aria-hidden="true">◆</span> <b id="hudCoins">0</b><span class="hud-coins-total" id="hudCoinsTotal"></span></span>
+        <button class="hud-btn" id="hudSound" type="button" aria-label="Toggle sound" title="Sound">♪</button>
+        <button class="hud-btn" id="hudTheme" type="button" aria-label="Toggle day and night" title="Day / night">☀</button>
+        <button class="hud-btn hud-btn-wide" id="hudRead" type="button" title="Read as text">Read Mode</button>
+      </span>
+    </div>
+
+    <button class="game-prompt" id="gamePrompt" type="button" hidden>
+      <span class="gp-key" id="gamePromptKey">E</span>
+      <span id="gamePromptText">Open</span>
+    </button>
+
+    <div class="game-touch" id="gameTouch" aria-hidden="true">
+      <div class="touch-pad">
+        <button class="touch-btn" data-move="left" type="button" aria-label="Move left">◀</button>
+        <button class="touch-btn" data-move="right" type="button" aria-label="Move right">▶</button>
+      </div>
+      <div class="touch-actions">
+        <button class="touch-btn touch-jump" data-action="jump" type="button" aria-label="Jump">▲</button>
+      </div>
+    </div>
+
+    <div class="game-intro" id="gameIntro">
+      <div class="gi-inner">
+        <p class="gi-kicker">A playable portfolio</p>
+        <h1 class="gi-title">Monish Dhanvantar</h1>
+        <p class="gi-role">Game Developer &nbsp;/&nbsp; Software Engineer</p>
+        <p class="gi-blurb">I built this world myself. Guide the explorer through the temple — every archway and relic you find is a piece of my real work. Reach the banner at the end to get in touch.</p>
+        <div class="gi-actions">
+          <button class="gi-play" id="gamePlay" type="button">▶&nbsp;&nbsp;Play</button>
+          <button class="gi-read" id="introRead" type="button">Read as text instead</button>
+        </div>
+        <div class="gi-controls">
+          <span><kbd>←</kbd><kbd>→</kbd> move</span>
+          <span><kbd>Space</kbd> jump</span>
+          <span><kbd>E</kbd> open</span>
+          <span><kbd>M</kbd> read mode</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-panel" id="gamePanel" role="dialog" aria-modal="true" aria-labelledby="gpTitle" hidden>
+      <div class="gp-backdrop" data-gp-close></div>
+      <div class="gp-card">
+        <button class="gp-close" type="button" data-gp-close aria-label="Close">✕</button>
+        <div class="gp-body" id="gpBody"></div>
+      </div>
+    </div>
+
+    <div class="sr-live" id="gameLive" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- ══════════ READ MODE — accessible, classic version of the site ══════════ -->
+<div class="reader" id="reader" hidden>
 
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="grain" aria-hidden="true"></div>
@@ -405,11 +470,18 @@
   </div>
 </div>
 
+</div><!-- /#reader -->
+
+<noscript>
+  <style>.game-root{display:none !important}.reader{display:block !important}</style>
+</noscript>
+
 <script src="js/vendor/gsap.min.js"></script>
 <script src="js/vendor/ScrollTrigger.min.js"></script>
 <script src="js/vendor/three.min.js"></script>
 <script src="js/data.js"></script>
 <script src="js/main.js"></script>
 <script src="js/advanced.js"></script>
+<script src="js/game.js"></script>
 </body>
 </html>
