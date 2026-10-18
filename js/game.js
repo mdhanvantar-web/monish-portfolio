@@ -580,7 +580,7 @@
       var sc = 0.6 + 0.4 * Math.abs(Math.sin(time * 2 + c.phase));
       ctx.save();
       ctx.translate(x, y); ctx.scale(sc, 1);
-      ctx.fillStyle = "#c5a16a";
+      ctx.fillStyle = "#fac000";
       ctx.beginPath();
       ctx.moveTo(0, -9); ctx.lineTo(7, 0); ctx.lineTo(0, 9); ctx.lineTo(-7, 0);
       ctx.closePath(); ctx.fill();
@@ -748,7 +748,7 @@
   function panelJourney(i) {
     var h = '<div class="gp-hero"><span class="gp-cat">05 — The Journey</span><h3 id="gpTitle">The Path So Far</h3></div><div class="gp-content"><div class="gp-timeline">';
     DATA.journey.forEach(function (j, idx) {
-      h += '<div class="gp-tl"' + (idx === i ? ' style="background:rgba(197,161,106,.06);border-radius:6px"' : "") + ">";
+      h += '<div class="gp-tl"' + (idx === i ? ' style="background:rgba(250,192,0,.06);border-radius:6px"' : "") + ">";
       h += '<span class="d">' + esc(j.date) + "</span><h5>" + esc(j.title) + "</h5>";
       if (j.org) h += '<p style="font-size:.82rem;margin:0 0 .3rem">' + esc(j.org) + "</p>";
       h += "<p>" + esc(j.text) + "</p></div>";
@@ -858,8 +858,8 @@
     backBtn.innerHTML = "▶&nbsp; Enter Game";
     backBtn.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:9999;" +
       "font:600 12px/1 var(--mono,monospace);letter-spacing:.12em;text-transform:uppercase;" +
-      "padding:14px 20px;border-radius:999px;border:1px solid rgba(197,161,106,.5);cursor:pointer;" +
-      "background:linear-gradient(135deg,#c5a16a,#a77c48);color:#0b0b0a;box-shadow:0 12px 30px rgba(0,0,0,.4)";
+      "padding:14px 20px;border-radius:999px;border:1px solid rgba(229,37,33,.6);cursor:pointer;" +
+      "background:linear-gradient(135deg,#e52521,#a81512);color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.4)";
     backBtn.addEventListener("click", enterGameMode);
     document.body.appendChild(backBtn);
   }

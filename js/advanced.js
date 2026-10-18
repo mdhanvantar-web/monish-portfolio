@@ -28,7 +28,7 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     var scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b0b0a, 0.075);
+    scene.fog = new THREE.FogExp2(0x0d1b3e, 0.075);
 
     var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
     camera.position.set(0, 0, 7.4);
@@ -41,21 +41,21 @@
 
     /* Outer wireframe shell */
     var outerGeo = new THREE.IcosahedronGeometry(2.35, 1);
-    var outerMat = new THREE.MeshBasicMaterial({ color: 0xa77c48, wireframe: true, transparent: true, opacity: 0.32 });
+    var outerMat = new THREE.MeshBasicMaterial({ color: 0xe52521, wireframe: true, transparent: true, opacity: 0.32 });
     var outer = new THREE.Mesh(outerGeo, outerMat);
     group.add(outer);
     disposables.push(outerGeo, outerMat);
 
     /* Inner solid monolith */
     var innerGeo = new THREE.IcosahedronGeometry(1.35, 0);
-    var innerMat = new THREE.MeshStandardMaterial({ color: 0x2b2620, metalness: 0.72, roughness: 0.38, flatShading: true });
+    var innerMat = new THREE.MeshStandardMaterial({ color: 0xa34700, metalness: 0.72, roughness: 0.38, flatShading: true });
     var inner = new THREE.Mesh(innerGeo, innerMat);
     group.add(inner);
     disposables.push(innerGeo, innerMat);
 
     /* Accent edge shell */
     var edgeGeo = new THREE.IcosahedronGeometry(1.42, 0);
-    var edgeMat = new THREE.MeshBasicMaterial({ color: 0xc5a16a, wireframe: true, transparent: true, opacity: 0.5 });
+    var edgeMat = new THREE.MeshBasicMaterial({ color: 0xfac000, wireframe: true, transparent: true, opacity: 0.5 });
     var edges = new THREE.Mesh(edgeGeo, edgeMat);
     group.add(edges);
     disposables.push(edgeGeo, edgeMat);
@@ -73,40 +73,40 @@
     }
     var pGeo = new THREE.BufferGeometry();
     pGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    var pMat = new THREE.PointsMaterial({ color: 0xc5a16a, size: 0.035, transparent: true, opacity: 0.65, depthWrite: false });
+    var pMat = new THREE.PointsMaterial({ color: 0xfac000, size: 0.035, transparent: true, opacity: 0.65, depthWrite: false });
     var points = new THREE.Points(pGeo, pMat);
     scene.add(points);
     disposables.push(pGeo, pMat);
 
     /* Lights */
-    var ambient = new THREE.AmbientLight(0x46403a, 1.1);
+    var ambient = new THREE.AmbientLight(0x2a3a5e, 1.1);
     scene.add(ambient);
-    var key = new THREE.PointLight(0xc5a16a, 1.5, 26);
+    var key = new THREE.PointLight(0xfac000, 1.5, 26);
     key.position.set(6, 5, 6);
     scene.add(key);
-    var rim = new THREE.PointLight(0xa77c48, 0.9, 24);
+    var rim = new THREE.PointLight(0xe52521, 0.9, 24);
     rim.position.set(-7, -3, 3);
     scene.add(rim);
 
     /* Theme-aware recolouring */
     function applyTheme(theme) {
       var light = theme === "light";
-      scene.fog.color.setHex(light ? 0xefe7d7 : 0x0b0b0a);
+      scene.fog.color.setHex(light ? 0x5c94fc : 0x0d1b3e);
       scene.fog.density = light ? 0.06 : 0.075;
-      outerMat.color.setHex(light ? 0x7d5a2c : 0xa77c48);
+      outerMat.color.setHex(light ? 0x2ea44f : 0xe52521);
       outerMat.opacity = light ? 0.42 : 0.32;
-      edgeMat.color.setHex(light ? 0x8a6428 : 0xc5a16a);
+      edgeMat.color.setHex(light ? 0xd99b00 : 0xfac000);
       edgeMat.opacity = light ? 0.6 : 0.5;
-      innerMat.color.setHex(light ? 0xded2ba : 0x2b2620);
+      innerMat.color.setHex(light ? 0xf4a340 : 0xa34700);
       innerMat.metalness = light ? 0.34 : 0.72;
       innerMat.roughness = light ? 0.55 : 0.38;
-      pMat.color.setHex(light ? 0x8a6428 : 0xc5a16a);
+      pMat.color.setHex(light ? 0xd99b00 : 0xfac000);
       pMat.opacity = light ? 0.5 : 0.65;
-      ambient.color.setHex(light ? 0xfff4e2 : 0x46403a);
+      ambient.color.setHex(light ? 0xdfeeff : 0x2a3a5e);
       ambient.intensity = light ? 1.0 : 1.1;
-      key.color.setHex(light ? 0x9c7538 : 0xc5a16a);
+      key.color.setHex(light ? 0xd99b00 : 0xfac000);
       key.intensity = light ? 1.1 : 1.5;
-      rim.color.setHex(light ? 0x7d5a2c : 0xa77c48);
+      rim.color.setHex(light ? 0xc0281f : 0xe52521);
       rim.intensity = light ? 0.7 : 0.9;
     }
     applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
