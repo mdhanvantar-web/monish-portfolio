@@ -605,7 +605,7 @@
     return document.documentElement.getAttribute("data-theme") || "dark";
   }
   function syncThemeMeta(t) {
-    if (metaTheme) metaTheme.setAttribute("content", t === "light" ? "#bcd8ff" : "#0d1b3e");
+    if (metaTheme) metaTheme.setAttribute("content", t === "light" ? "#e9f1ff" : "#0a1733");
     if (themeToggle) {
       themeToggle.setAttribute("aria-label", "Switch to " + (t === "light" ? "dark" : "light") + " theme");
       themeToggle.setAttribute("title", "Switch to " + (t === "light" ? "dark" : "light") + " theme");
