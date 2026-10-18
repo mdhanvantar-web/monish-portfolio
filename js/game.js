@@ -50,21 +50,9 @@
   var coins = 0;
   var announcerT = 0;
 
-  /* ---------- theme ---------- */
-  function themeName() {
-    return document.documentElement.getAttribute("data-theme") || "dark";
-  }
-  var THEME = themeName();
-  function setTheme(t) {
-    document.documentElement.setAttribute("data-theme", t);
-    try { localStorage.setItem("theme", t); } catch (e) {}
-    var meta = document.getElementById("metaThemeColor");
-    if (meta) meta.setAttribute("content", t === "light" ? "#efe7d7" : "#0b0b0a");
-    window.dispatchEvent(new CustomEvent("portfolio:theme", { detail: { theme: t } }));
-  }
-  window.addEventListener("portfolio:theme", function (e) {
-    if (e && e.detail && e.detail.theme) THEME = e.detail.theme;
-  });
+  /* ---------- sky — the game keeps its own bright, classic palette ---------- */
+  var skyMode = "day";   // "day" (classic bright) | "dusk" (sunset)
+  var clouds = [];
 
   /* ---------- audio (WebAudio, synthesised) ---------- */
   var actx = null, soundOn = true, master = null;
@@ -105,7 +93,7 @@
   }
 
   /* ---------- world ---------- */
-  var solids = [], markers = [], coinList = [], enemies = [], decos = [], starsfar = [];
+  var solids = [], markers = [], coinList = [], enemies = [], deco = [];
   function addSolid(x, y, w, h, kind) { solids.push({ x: x, y: y, w: w, h: h, kind: kind || "stone" }); }
   function addMarker(x, y, w, h, label, action, kind) {
     markers.push({ x: x, y: y, w: w, h: h, label: label, action: action, kind: kind || "portal" });
@@ -172,12 +160,44 @@
     addEnemy(4400, 4900, GROUND_Y);
     addEnemy(5100, 5600, GROUND_Y);
 
-    /* ambient stars */
-    for (var i = 0; i < 70; i++) {
-      starsfar.push({ x: Math.random() * WORLD_W, y: Math.random() * 300, r: Math.random() * 1.4 + 0.4, p: Math.random() * 6.28 });
+    /* clouds (parallax) */
+    clouds = [];
+    for (var ci = 0; ci < 30; ci++) {
+      clouds.push({
+        x: Math.random() * WORLD_W,
+        y: 30 + Math.random() * 190,
+        s: 0.75 + Math.random() * 0.8,
+        p: Math.random() * 6.28
+      });
     }
 
+    /* bushes on the ground */
+    var bi = 0;
+    for (var bx = 120; bx < WORLD_W - 200; bx += 210) {
+      if (bx > 1500 && bx < 1600) continue;
+      if (bx > 3060 && bx < 3180) continue;
+      deco.push({ type: "bush", x: bx, s: 0.8 + (bi % 3) * 0.25 });
+      bi++;
+    }
+
+    /* classic extras: pipes, ? blocks and a brick row */
+    addPipe(980, 64);
+    addPipe(3300, 74);
+    addPipe(5060, 64);
+    addQBlock(1150, 352); addQBlock(1182, 352); addQBlock(1214, 352);
+    addQBlock(4380, 352); addQBlock(4412, 352); addQBlock(4444, 352);
+    addSolid(2050, 352, 32, 32, "brick");
+    addSolid(2082, 352, 32, 32, "brick");
+    addSolid(2114, 352, 32, 32, "brick");
+
     hudCoinsTotal.textContent = "/" + coinList.length;
+  }
+
+  function addPipe(x, h) {
+    addSolid(x, GROUND_Y - h, 64, h, "pipe");
+  }
+  function addQBlock(x, y) {
+    addSolid(x, y, 32, 32, "qblock");
   }
 
   /* ---------- player ---------- */
@@ -339,19 +359,27 @@
 
   /* ---------- render ---------- */
   function pal() {
-    return THEME === "light" ? {
-      skyTop: "#f7eed6", skyBot: "#e5d3aa", far: "#ddc99e", mid: "#cbb588",
-      ground: "#cdb98d", groundTop: "#e8d9b6", line: "#a58f5f",
-      stone: "#c4ad80", stoneTop: "#e0d2ab",
-      text: "#241f18", fog: "rgba(120,90,40,.05)", glow: "rgba(150,110,50,.18)",
-      star: "rgba(120,90,40,.25)", enemy: "#8a6f45", enemyEye: "#5a3d18", player: "#6f5a34", playerTrim: "#f4e9d0"
-    } : {
-      skyTop: "#080a0c", skyBot: "#1d1b15", far: "#131109", mid: "#221d14",
-      ground: "#2a251c", groundTop: "#3d3424", line: "#151109",
-      stone: "#302a1f", stoneTop: "#453a29",
-      text: "#e9e2d6", fog: "rgba(197,161,106,.06)", glow: "rgba(197,161,106,.22)",
-      star: "rgba(233,226,214,.7)", enemy: "#3a3123", enemyEye: "#c5a16a", player: "#a77c48", playerTrim: "#e9e2d6"
+    var p = {
+      cloud: "#ffffff", cloudShade: "#d6e8ff", sun: "#fff2b0",
+      pipe: "#00a800", pipeLight: "#58d854", pipeDark: "#0a5a0a",
+      qblock: "#fac000", qblockDark: "#8a4800", qblockLight: "#fff0a0",
+      grass: "#3cb54a", grassDark: "#2a8a36",
+      skin: "#f5c29b", shoe: "#5a3210", pupil: "#1a1a1a", eye: "#ffffff"
     };
+    if (skyMode === "dusk") {
+      p.skyTop = "#f0803c"; p.skyBot = "#fcd080";
+      p.far = "#9a5a3a"; p.mid = "#6e8f3a";
+      p.ground = "#b04018"; p.groundTop = "#e09848";
+      p.brickLine = "#6a2408";
+      p.enemy = "#8a5a2a"; p.cap = "#c83028"; p.overalls = "#2f4aa8";
+      return p;
+    }
+    p.skyTop = "#5c94fc"; p.skyBot = "#9ac8ff";
+    p.far = "#a8dc6e"; p.mid = "#5fbf3f";
+    p.ground = "#c84c0c"; p.groundTop = "#e8a050";
+    p.brickLine = "#7a3010";
+    p.enemy = "#c8884a"; p.cap = "#e52521"; p.overalls = "#3b5dc9";
+    return p;
   }
 
   function rr(x, y, w, h, r) {
@@ -369,44 +397,94 @@
     var g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, p.skyTop); g.addColorStop(1, p.skyBot);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    /* stars (night) */
-    if (THEME !== "light") {
-      for (var i = 0; i < starsfar.length; i++) {
-        var s = starsfar[i];
-        var sx = s.x - cam.x * 0.15; if (sx < -5 || sx > W + 5) continue;
-        var tw = 0.5 + 0.5 * Math.sin(time * 2 + s.p);
-        ctx.globalAlpha = 0.25 + tw * 0.55;
-        ctx.fillStyle = p.star;
-        ctx.fillRect(sx, s.y, s.r, s.r);
-      }
-      ctx.globalAlpha = 1;
+
+    /* sun */
+    ctx.fillStyle = p.sun;
+    ctx.beginPath(); ctx.arc(W - 130 - cam.x * 0.05, 74, 36, 0, 6.28); ctx.fill();
+
+    /* clouds */
+    for (var i = 0; i < clouds.length; i++) {
+      var c = clouds[i];
+      var cx = c.x - cam.x * 0.25;
+      if (cx < -150 || cx > W + 150) continue;
+      drawCloud(cx, c.y + Math.sin(time * 0.6 + c.p) * 3, c.s, p);
     }
-    /* warm horizon glow */
-    var hg = ctx.createRadialGradient(W * 0.5, H * 0.55, 10, W * 0.5, H * 0.55, H * 0.9);
-    hg.addColorStop(0, p.glow); hg.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = hg; ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawCloud(x, y, s, p) {
+    ctx.fillStyle = p.cloud;
+    var lobes = [[0, 0, 20], [20, -10, 26], [46, -4, 22], [66, 2, 18], [30, 8, 24]];
+    for (var i = 0; i < lobes.length; i++) {
+      var l = lobes[i];
+      ctx.beginPath(); ctx.arc(x + l[0] * s, y + l[1] * s, l[2] * s, 0, 6.28); ctx.fill();
+    }
+    ctx.fillStyle = p.cloudShade;
+    ctx.fillRect(x - 4 * s, y + 14 * s, 88 * s, 6 * s);
   }
 
   function drawParallax(p) {
-    /* far temple skyline */
+    /* far rolling hills */
+    var fx = -cam.x * 0.25;
     ctx.fillStyle = p.far;
-    var ox = -cam.x * 0.2;
-    for (var i = -1; i < 10; i++) {
-      var bx = ox + i * 420;
-      ctx.fillRect(bx, 300, 200, 180);
-      ctx.fillRect(bx + 240, 340, 120, 140);
-      ctx.beginPath(); ctx.moveTo(bx + 100, 250); ctx.lineTo(bx + 150, 300); ctx.lineTo(bx + 50, 300); ctx.closePath(); ctx.fill();
+    for (var i = -1; i < 14; i++) {
+      var bx = fx + i * 300;
+      ctx.beginPath();
+      ctx.moveTo(bx - 20, GROUND_Y);
+      ctx.quadraticCurveTo(bx + 100, GROUND_Y - 140, bx + 220, GROUND_Y);
+      ctx.closePath(); ctx.fill();
     }
-    /* mid arches */
-    ctx.fillStyle = p.mid;
+    /* mid hills (closer, darker) */
     var mx = -cam.x * 0.45;
-    for (var j = -1; j < 14; j++) {
-      var ax = mx + j * 300;
-      ctx.fillRect(ax, 330, 26, 150);
-      ctx.fillRect(ax + 90, 330, 26, 150);
-      ctx.beginPath(); ctx.moveTo(ax + 13, 300); ctx.lineTo(ax + 103, 300); ctx.lineTo(ax + 58, 262); ctx.closePath();
-      ctx.fill();
+    ctx.fillStyle = p.mid;
+    for (var j = -1; j < 16; j++) {
+      var hx = mx + j * 250;
+      ctx.beginPath();
+      ctx.moveTo(hx - 20, GROUND_Y);
+      ctx.quadraticCurveTo(hx + 80, GROUND_Y - 100, hx + 180, GROUND_Y);
+      ctx.closePath(); ctx.fill();
     }
+  }
+
+  function drawDecos(p) {
+    ctx.fillStyle = p.mid;
+    for (var i = 0; i < deco.length; i++) {
+      var d = deco[i];
+      var x = d.x - cam.x;
+      if (x < -130 || x > W + 130) continue;
+      var s = d.s;
+      ctx.beginPath();
+      ctx.arc(x, GROUND_Y - 10 * s, 15 * s, 0, 6.28);
+      ctx.arc(x + 22 * s, GROUND_Y - 17 * s, 20 * s, 0, 6.28);
+      ctx.arc(x + 44 * s, GROUND_Y - 10 * s, 15 * s, 0, 6.28);
+      ctx.fill();
+      ctx.fillRect(x - 15 * s, GROUND_Y - 10 * s, 74 * s, 10 * s);
+    }
+  }
+
+  function drawPipe(x, y, w, h, p) {
+    ctx.fillStyle = p.pipe; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = p.pipeLight; ctx.fillRect(x + 6, y, 7, h);
+    ctx.fillStyle = p.pipeDark; ctx.fillRect(x + w - 5, y, 5, h);
+    ctx.fillStyle = p.pipe; ctx.fillRect(x - 6, y, w + 12, 18);
+    ctx.fillStyle = p.pipeLight; ctx.fillRect(x, y, 7, 18);
+    ctx.fillStyle = p.pipeDark; ctx.fillRect(x + w + 1, y, 5, 18);
+    ctx.strokeStyle = p.pipeDark; ctx.lineWidth = 2;
+    ctx.strokeRect(x - 5, y + 1, w + 10, 16);
+  }
+
+  function drawQBlock(x, y, w, h, p) {
+    ctx.fillStyle = p.qblock; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = p.qblockLight; ctx.fillRect(x + 2, y + 2, w - 4, 3);
+    ctx.fillStyle = p.qblockDark; ctx.fillRect(x, y + h - 4, w, 4);
+    ctx.strokeStyle = p.qblockDark; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+    ctx.fillStyle = p.qblockDark;
+    ctx.fillRect(x + 3, y + 3, 3, 3); ctx.fillRect(x + w - 6, y + 3, 3, 3);
+    ctx.fillRect(x + 3, y + h - 6, 3, 3); ctx.fillRect(x + w - 6, y + h - 6, 3, 3);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px 'IBM Plex Mono', monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("?", x + w / 2, y + h / 2 + 1);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
   }
 
   function drawSolids(p) {
@@ -414,26 +492,29 @@
       var s = solids[i];
       var x = s.x - cam.x, y = s.y;
       if (x + s.w < -40 || x > W + 40) continue;
-      ctx.fillStyle = s.kind === "ground" ? p.ground : p.stone;
-      ctx.fillRect(x, y, s.w, s.h);
-      ctx.fillStyle = s.kind === "ground" ? p.groundTop : p.stoneTop;
-      ctx.fillRect(x, y, s.w, 6);
-      ctx.strokeStyle = p.line; ctx.lineWidth = 1;
-      if (s.kind === "ground") {
-        for (var bx = 0; bx < s.w; bx += 48) {
-          ctx.beginPath(); ctx.moveTo(x + bx, y + 6); ctx.lineTo(x + bx, y + s.h); ctx.stroke();
-        }
-        ctx.beginPath(); ctx.moveTo(x, y + 34); ctx.lineTo(x + s.w, y + 34); ctx.stroke();
-      } else {
-        ctx.strokeRect(x + 0.5, y + 0.5, s.w - 1, s.h - 1);
-      }
-    }
-  }
+      if (s.kind === "pipe") { drawPipe(x, y, s.w, s.h, p); continue; }
+      if (s.kind === "qblock") { drawQBlock(x, y, s.w, s.h, p); continue; }
 
-  function drawDecos(p) {
-    ctx.fillStyle = p.line;
-    /* sparse pillars along the road */
-    for (var i = 0; i < markers.length; i++) { /* keep parity; nothing here */ }
+      ctx.fillStyle = p.ground;
+      ctx.fillRect(x, y, s.w, s.h);
+      if (s.kind === "ground") {
+        ctx.fillStyle = p.grass;
+        ctx.fillRect(x, y, s.w, 9);
+        ctx.fillStyle = p.grassDark;
+        ctx.fillRect(x, y + 9, s.w, 3);
+      }
+      ctx.strokeStyle = p.brickLine; ctx.lineWidth = 2;
+      var step = s.kind === "brick" ? 16 : TILE;
+      var top = s.kind === "ground" ? 12 : 0;
+      for (var bx = 0; bx <= s.w; bx += step) {
+        ctx.beginPath(); ctx.moveTo(x + bx, y + top); ctx.lineTo(x + bx, y + s.h); ctx.stroke();
+      }
+      for (var by = 0; by <= s.h; by += step) {
+        ctx.beginPath(); ctx.moveTo(x, y + by); ctx.lineTo(x + s.w, y + by); ctx.stroke();
+      }
+      ctx.fillStyle = p.groundTop;
+      ctx.fillRect(x, y + top, s.w, 2);
+    }
   }
 
   function drawMarkers(p) {
@@ -445,40 +526,43 @@
       var cx = x + m.w / 2, base = m.y + m.h;
 
       if (m.kind === "sign") {
-        ctx.fillStyle = "#5a4326"; ctx.fillRect(cx - 3, m.y + 20, 6, m.h - 20);
-        ctx.fillStyle = "#7a5c31"; rr(x, m.y, m.w, 22, 3); ctx.fill();
-        ctx.fillStyle = p.glow; ctx.fillRect(x + 2, m.y + 2, m.w - 4, 4);
+        ctx.fillStyle = "#8a5a2a"; ctx.fillRect(cx - 3, m.y + 20, 6, m.h - 20);
+        ctx.fillStyle = "#c8884a"; rr(x, m.y, m.w, 22, 3); ctx.fill();
+        ctx.fillStyle = "#7a3010"; ctx.fillRect(x + 2, m.y + 2, m.w - 4, 4);
       } else if (m.kind === "banner") {
-        ctx.fillStyle = "#5a4326"; ctx.fillRect(cx - 4, m.y, 8, m.h);
-        ctx.fillStyle = "#a77c48";
+        ctx.fillStyle = "#8a5a2a"; ctx.fillRect(cx - 4, m.y, 8, m.h);
+        ctx.fillStyle = "#e52521";
         ctx.beginPath(); ctx.moveTo(cx + 3, m.y + 6); ctx.lineTo(cx + 44, m.y + 26 + Math.sin(time * 3) * 3);
         ctx.lineTo(cx + 3, m.y + 52); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = "#c5a16a"; ctx.beginPath(); ctx.arc(cx, m.y - 2, 5, 0, 6.28); ctx.fill();
+        ctx.fillStyle = "#fac000"; ctx.beginPath(); ctx.arc(cx, m.y - 2, 5, 0, 6.28); ctx.fill();
       } else if (m.kind === "monolith") {
-        ctx.fillStyle = p.stone; rr(x, m.y, m.w, m.h, 4); ctx.fill();
-        ctx.fillStyle = p.stoneTop; ctx.fillRect(x, m.y, m.w, 5);
+        ctx.fillStyle = p.ground; rr(x, m.y, m.w, m.h, 4); ctx.fill();
+        ctx.fillStyle = p.groundTop; ctx.fillRect(x, m.y, m.w, 5);
+        ctx.fillStyle = "#ffffff"; ctx.font = "bold 14px 'IBM Plex Mono', monospace";
+        ctx.textAlign = "center"; ctx.fillText("★", cx, m.y + 40);
+        ctx.textAlign = "left";
       } else if (m.kind === "shrine") {
-        ctx.fillStyle = p.stone; ctx.fillRect(x + 6, m.y + 14, m.w - 12, m.h - 14);
-        ctx.fillStyle = "#a77c48";
-        ctx.beginPath(); ctx.moveTo(x, m.y + 16); ctx.lineTo(cx, m.y - 4); ctx.lineTo(x + m.w, m.y + 16); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#c8884a"; ctx.fillRect(x + 6, m.y + 16, m.w - 12, m.h - 16);
+        ctx.fillStyle = "#e52521";
+        ctx.beginPath(); ctx.moveTo(x, m.y + 18); ctx.lineTo(cx, m.y - 4); ctx.lineTo(x + m.w, m.y + 18); ctx.closePath(); ctx.fill();
       } else {
         /* portal pedestal */
-        ctx.fillStyle = p.stone; rr(x + 4, m.y + 42, m.w - 8, m.h - 42, 4); ctx.fill();
-        ctx.fillStyle = p.stoneTop; ctx.fillRect(x + 4, m.y + 42, m.w - 8, 4);
+        ctx.fillStyle = p.ground; rr(x + 4, m.y + 42, m.w - 8, m.h - 42, 4); ctx.fill();
+        ctx.fillStyle = p.groundTop; ctx.fillRect(x + 4, m.y + 42, m.w - 8, 4);
       }
 
       /* floating portal gem */
       var floatY = m.y + 6 + Math.sin(time * 2 + i) * 3;
       ctx.save();
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = THEME === "light" ? "#b98b3f" : "#c5a16a";
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = "#fac000";
       ctx.beginPath();
       ctx.moveTo(cx, floatY - 9); ctx.lineTo(cx + 9, floatY); ctx.lineTo(cx, floatY + 9); ctx.lineTo(cx - 9, floatY);
       ctx.closePath(); ctx.fill();
       ctx.restore();
 
       if (isActive) {
-        ctx.strokeStyle = "#c5a16a"; ctx.lineWidth = 2;
+        ctx.strokeStyle = "#fac000"; ctx.lineWidth = 2;
         ctx.globalAlpha = 0.5 + 0.5 * Math.sin(time * 6);
         rr(x - 6, m.y - 10, m.w + 12, m.h + 12, 6); ctx.stroke();
         ctx.globalAlpha = 1;
@@ -514,63 +598,61 @@
       var h = e.alive ? e.h : 8;
       var y = e.y + (e.h - h);
       ctx.fillStyle = p.enemy;
-      rr(x, y, e.w, h, 6); ctx.fill();
+      rr(x, y, e.w, h, 7); ctx.fill();
       if (e.alive) {
-        ctx.fillStyle = p.enemyEye;
-        ctx.fillRect(x + 6, y + 8, 5, 5);
-        ctx.fillRect(x + e.w - 11, y + 8, 5, 5);
-        ctx.fillStyle = p.enemy;
-        ctx.fillRect(x + 3, y + e.h, 6, 5);
-        ctx.fillRect(x + e.w - 9, y + e.h, 6, 5);
+        ctx.fillStyle = p.eye;
+        ctx.fillRect(x + 6, y + 9, 7, 7); ctx.fillRect(x + e.w - 13, y + 9, 7, 7);
+        ctx.fillStyle = p.pupil;
+        ctx.fillRect(x + 9, y + 12, 3, 4); ctx.fillRect(x + e.w - 10, y + 12, 3, 4);
+        ctx.fillStyle = "#3a2410";
+        ctx.fillRect(x + 5, y + 7, 9, 2); ctx.fillRect(x + e.w - 14, y + 7, 9, 2);
+        ctx.fillRect(x + 2, y + e.h, 8, 4); ctx.fillRect(x + e.w - 10, y + e.h, 8, 4);
       }
     }
   }
 
   function drawPlayer(p) {
-    var x = player.x - cam.x, y = player.y;
+    var x = player.x - cam.x, y = player.y, w = player.w;
     if (player.blink > 0 && Math.floor(player.blink * 20) % 2 === 0) return;
 
-    /* shadow */
-    ctx.globalAlpha = 0.25; ctx.fillStyle = "#000";
-    ctx.beginPath(); ctx.ellipse(x + player.w / 2, GROUND_Y + 2, 13, 4, 0, 0, 6.28); ctx.fill();
+    ctx.globalAlpha = 0.22; ctx.fillStyle = "#000";
+    ctx.beginPath(); ctx.ellipse(x + w / 2, GROUND_Y + 2, 13, 4, 0, 0, 6.28); ctx.fill();
     ctx.globalAlpha = 1;
 
     var legPhase = Math.sin(player.anim);
     var bob = player.onGround ? Math.abs(Math.sin(player.anim)) * 1.5 : 0;
     y -= bob;
+    var swing = player.onGround ? legPhase * 4 : 3;
 
-    /* legs */
-    ctx.fillStyle = "#2a2118";
-    var legSwing = player.onGround ? legPhase * 5 : 3;
-    ctx.fillRect(x + 4, y + 26, 6, 12 + legSwing);
-    ctx.fillRect(x + player.w - 10, y + 26, 6, 12 - legSwing);
-    /* body / tunic */
-    ctx.fillStyle = p.player;
-    rr(x + 2, y + 13, player.w - 4, 15, 3); ctx.fill();
-    /* belt */
-    ctx.fillStyle = "#c5a16a";
-    ctx.fillRect(x + 2, y + 22, player.w - 4, 3);
-    /* head */
-    ctx.fillStyle = "#e8c9a0";
-    rr(x + 5, y + 1, player.w - 10, 13, 4); ctx.fill();
-    /* hood/trim */
-    ctx.fillStyle = p.playerTrim;
-    ctx.fillRect(x + 5, y, player.w - 10, 4);
+    /* shoes */
+    ctx.fillStyle = p.shoe;
+    ctx.fillRect(x + 2, y + player.h - 6 + swing, 10, 6);
+    ctx.fillRect(x + w - 12, y + player.h - 6 - swing, 10, 6);
+    /* overalls */
+    ctx.fillStyle = p.overalls;
+    rr(x + 2, y + 18, w - 4, 12, 2); ctx.fill();
+    /* shirt + swinging arms */
+    ctx.fillStyle = p.cap;
+    rr(x + 1, y + 13, w - 2, 8, 2); ctx.fill();
+    var arm = player.onGround ? -legPhase * 4 : -4;
+    ctx.fillRect(player.face > 0 ? x + w - 3 : x, y + 14 + arm, 3, 7);
+    ctx.fillRect(player.face > 0 ? x : x + w - 3, y + 14 - arm, 3, 7);
+    /* face */
+    ctx.fillStyle = p.skin;
+    rr(x + 4, y + 6, w - 8, 9, 3); ctx.fill();
+    /* cap */
+    ctx.fillStyle = p.cap;
+    rr(x + 3, y + 1, w - 6, 6, 2); ctx.fill();
+    ctx.fillRect(player.face > 0 ? x + w - 9 : x + 3, y + 4, 6, 3);
     /* eye */
-    ctx.fillStyle = "#241f18";
-    var eyeX = player.face > 0 ? x + player.w - 12 : x + 8;
-    ctx.fillRect(eyeX, y + 6, 3, 3);
-    /* arms */
-    ctx.fillStyle = p.player;
-    var armSwing = player.onGround ? -legPhase * 4 : -4;
-    ctx.fillRect(player.face > 0 ? x + player.w - 4 : x, y + 15 + armSwing, 4, 8);
-    ctx.fillRect(player.face > 0 ? x : x + player.w - 4, y + 15 - armSwing, 4, 8);
+    ctx.fillStyle = p.pupil;
+    ctx.fillRect(player.face > 0 ? x + w - 12 : x + 8, y + 9, 2, 3);
   }
 
   function drawVignette() {
-    var g = ctx.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 0.95);
-    g.addColorStop(0, "rgba(0,0,0,0)");
-    g.addColorStop(1, THEME === "light" ? "rgba(90,70,40,.18)" : "rgba(0,0,0,.55)");
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "rgba(255,255,255,0)");
+    g.addColorStop(1, "rgba(0,0,0,.12)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
 
@@ -584,6 +666,7 @@
     drawSky(p);
     drawParallax(p);
     drawSolids(p);
+    drawDecos(p);
     drawMarkers(p);
     drawCoins(p);
     drawEnemies(p);
@@ -826,14 +909,19 @@
     hudSound.textContent = soundOn ? "♪" : "✕";
     hudSound.setAttribute("aria-label", soundOn ? "Mute sound" : "Unmute sound");
   });
-  if (hudTheme) {
-    hudTheme.textContent = THEME === "light" ? "☾" : "☀";
-    hudTheme.addEventListener("click", function () {
-      var next = themeName() === "light" ? "dark" : "light";
-      setTheme(next);
-      hudTheme.textContent = next === "light" ? "☾" : "☀";
-    });
+  function applySky() {
+    if (hudTheme) {
+      hudTheme.textContent = skyMode === "day" ? "☾" : "☀";
+      hudTheme.setAttribute("aria-label", skyMode === "day" ? "Switch to dusk" : "Switch to day");
+      hudTheme.setAttribute("title", skyMode === "day" ? "Dusk" : "Day");
+    }
   }
+  applySky();
+  if (hudTheme) hudTheme.addEventListener("click", function () {
+    skyMode = skyMode === "day" ? "dusk" : "day";
+    applySky();
+    sfx("open");
+  });
   if (hudRead) hudRead.addEventListener("click", enterReadMode);
   if (introRead) introRead.addEventListener("click", enterReadMode);
   if (prompt) prompt.addEventListener("click", function () { if (activeMarker) openMarker(activeMarker); });
