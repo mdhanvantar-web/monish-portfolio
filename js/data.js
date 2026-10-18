@@ -27,6 +27,20 @@ window.PORTFOLIO = {
         { label: "GitHub Pages", url: "https://mdhanvantar-web.github.io/neon-breach-game/" },
         { label: "Repository", url: "https://github.com/mdhanvantar-web/neon-breach-game" }
       ],
+      role: "Solo — design, code, art direction",
+      detail: {
+        problem:
+          "Most browser 3D games either require a heavy build pipeline or ship as toys. I wanted a complete, polished arena shooter that runs from a single index.html — no install, no bundler, playable offline.",
+        approach:
+          "Everything is hand-written vanilla JavaScript on the three.js WebGL renderer. Geometry, arena layout, and textures are generated procedurally at load, so there are no binary assets to fetch beyond the logo.",
+        contribution:
+          "Designed and built the entire game: player movement and pointer-lock look, weapon systems, enemy AI, boss encounters, wave modifiers, scoring, and the settings UI.",
+        challenges: [
+          "Making critical-hit detection reliable — one enemy constructor builds every hostile type, with an explicit core-mesh list so a shield collider can never be mistaken for a weak point.",
+          "Holding the real-time light budget to 8 lights: the VOIDLIT blackout modifier re-tunes existing lights and fog instead of adding any, so performance stays predictable.",
+          "Keeping it playable across input devices — pointer-lock on desktop, an auto-appearing touch overlay, and full gamepad support."
+        ]
+      },
       image: "assets/projects/neon-wordmark.png",
       imageAlt: "Neon Breach game wordmark emblem",
       coverStyle: "neon"
@@ -51,6 +65,19 @@ window.PORTFOLIO = {
         { label: "Live Site", url: "https://e-vara.vercel.app", primary: true },
         { label: "Repository", url: "https://github.com/mdhanvantar-web/E-vara" }
       ],
+      role: "Contributor — fork, code study & modification",
+      detail: {
+        problem:
+          "Identity monitoring tools usually trade privacy for coverage. E-VARA set out to do real-time identity and threat-surface monitoring without centralizing raw personal data.",
+        approach:
+          "A React + TypeScript front end on the Supabase stack, with ingestion handled asynchronously through edge workers and raw identifiers hashed client-side before anything leaves the browser.",
+        contribution:
+          "Forked and worked through the codebase — tracing the React/TypeScript architecture and the Supabase edge-worker flow to understand how privacy-preserving ingestion, risk scoring, and the HUD dashboard fit together.",
+        challenges: [
+          "Following a non-trivial async architecture: client hashing, edge-worker processing, and the risk-scoring pipeline each live in different layers.",
+          "Reading an unfamiliar React + TypeScript codebase end to end as a learning exercise rather than a from-scratch build."
+        ]
+      },
       image: "assets/projects/evara-1.png",
       imageAlt: "E-VARA identity intelligence dashboard screenshot",
       coverStyle: "screenshot"
@@ -74,6 +101,19 @@ window.PORTFOLIO = {
       links: [
         { label: "Repository", url: "https://github.com/mdhanvantar-web/F1GAME", primary: true }
       ],
+      role: "Solo — build from scratch",
+      detail: {
+        problem:
+          "A deliberate exercise in the fundamentals: build a real-time game without a game engine, so every system — loop, input, collision — has to be understood rather than imported.",
+        approach:
+          "Plain Java on the Swing toolkit. A fixed-timestep loop drives updates and repaints, with AABB collision checks against oncoming traffic and score tracking that scales difficulty.",
+        contribution:
+          "Wrote the whole project: entities, the game loop, keyboard input handling, collision logic, scoring, and difficulty ramp.",
+        challenges: [
+          "Keeping the game loop and rendering decoupled so the simulation stays stable on Swing's paint cycle.",
+          "Getting collision and dodge timing to feel fair without a physics library."
+        ]
+      },
       image: null,
       imageAlt: "",
       coverStyle: "java"
@@ -96,6 +136,19 @@ window.PORTFOLIO = {
       links: [
         { label: "Repository", url: "https://github.com/mdhanvantar-web/Netflix-EDA-Project", primary: true }
       ],
+      role: "Solo — internship project (Pluto Academy)",
+      detail: {
+        problem:
+          "Raw catalog data is messy and mostly unusable as-is — the task was to turn it into a clean dataset and surface what it actually says about Netflix's content strategy over time.",
+        approach:
+          "A Pandas pipeline for cleaning and transformation (handling nulls, splitting multi-value fields, parsing dates), then Matplotlib and Seaborn to visualize trends across genres, ratings, and release years.",
+        contribution:
+          "Built the full notebook end to end: data loading and cleaning, transformation, and the exploratory visualization set.",
+        challenges: [
+          "Normalizing multi-value columns like cast and listed genres into something analyzable.",
+          "Choosing visualizations that communicate a trend rather than just plotting every column."
+        ]
+      },
       image: null,
       imageAlt: "",
       coverStyle: "data"
@@ -118,6 +171,19 @@ window.PORTFOLIO = {
       links: [
         { label: "Repository", url: "https://github.com/mdhanvantar-web/Titanic-Survival-Prediction", primary: true }
       ],
+      role: "Solo — ML exercise",
+      detail: {
+        problem:
+          "A classic supervised-learning problem used to work the full pipeline by hand: from raw passenger records to a model that predicts survival, evaluated honestly on held-out data.",
+        approach:
+          "Feature engineering from the raw records (filling and encoding missing values, deriving features like family size), training a supervised classifier, and evaluating it on a train/test split.",
+        contribution:
+          "Wrote the notebook end to end — feature preparation, model training, and evaluation.",
+        challenges: [
+          "Deciding how to handle missing values in columns that clearly matter for the outcome.",
+          "Avoiding overfitting and reading the evaluation honestly instead of tuning to a lucky split."
+        ]
+      },
       image: null,
       imageAlt: "",
       coverStyle: "ml"
@@ -141,6 +207,19 @@ window.PORTFOLIO = {
         { label: "Live Site", url: "https://assignment-trams.vercel.app", primary: true },
         { label: "Repository", url: "https://github.com/mdhanvantar-web/Assignment_trams" }
       ],
+      role: "Solo — design & build",
+      detail: {
+        problem:
+          "A no-framework exercise in fundamentals: build a clean, genuinely responsive assignment tracker using only hand-written HTML and CSS, then actually ship it.",
+        approach:
+          "Semantic HTML structure with hand-crafted CSS and a responsive layout that reflows cleanly across device sizes, deployed publicly on Vercel.",
+        contribution:
+          "Designed and built the full interface and deployed it.",
+        challenges: [
+          "Making the layout responsive without leaning on a framework or component library.",
+          "Keeping the markup semantic and accessible while matching the intended visual design."
+        ]
+      },
       image: null,
       imageAlt: "",
       coverStyle: "web"

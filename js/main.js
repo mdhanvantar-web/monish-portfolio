@@ -28,6 +28,8 @@
     DATA.projects.forEach(function (p, idx) {
       var featured = p.featured === true;
       var article = el("article", "project reveal" + (featured ? " feature" : "") + (idx % 2 === 1 && !featured ? " flip" : ""));
+      article.dataset.category = p.category;
+      article.dataset.id = p.id;
 
       /* Media */
       var media = el("div", "project-media");
@@ -90,6 +92,15 @@
         links.appendChild(a);
       });
       body.appendChild(links);
+
+      if (p.detail) {
+        var dbtn = el("button", "project-detail-btn",
+          '<span>Case Study</span><span class="arrow" aria-hidden="true">→</span>');
+        dbtn.type = "button";
+        dbtn.setAttribute("data-project-id", p.id);
+        dbtn.setAttribute("aria-label", "Open " + p.title + " case study");
+        body.appendChild(dbtn);
+      }
 
       article.appendChild(media);
       article.appendChild(body);
@@ -215,6 +226,20 @@
       });
     }, { rootMargin: "0px 0px -8% 0px", threshold: 0.06 });
     els.forEach(function (e) { io.observe(e); });
+
+    /* Safety net — reveal anything that slipped past the observer
+       (fast scroll / missed intersections). Never touches filtered cards. */
+    function sweep() {
+      var vh = window.innerHeight;
+      els.forEach(function (e) {
+        if (e.classList.contains("visible")) return;
+        if (e.style.display === "none" || e.classList.contains("filtering-out")) return;
+        if (e.getBoundingClientRect().top < vh * 0.94) e.classList.add("visible");
+      });
+    }
+    window.addEventListener("scroll", sweep, { passive: true });
+    window.addEventListener("resize", sweep, { passive: true });
+    sweep();
   }
 
   /* ---------- Contact form: compose & copy (honest, no server) ---------- */
@@ -244,7 +269,7 @@
 
       function done(ok) {
         formStatus.textContent = ok
-          ? "Message copied. Paste it into an email to monishdhanvantar@gmail.com or send via LinkedIn above."
+          ? "Message copied. Paste it into an email to monishdhanvantar20@gmail.com or send via LinkedIn above."
           : "Copy failed — select the message manually. Nothing was sent anywhere.";
       }
 
@@ -281,9 +306,301 @@
     }, { passive: true });
   }
 
+  /* ---------- Project filters ---------- */
+  function initFilters() {
+    var bar = document.getElementById("filterBar");
+    var list = document.getElementById("projectsList");
+    if (!bar || !list) return;
+
+    var cats = [];
+    DATA.projects.forEach(function (p) {
+      if (cats.indexOf(p.category) === -1) cats.push(p.category);
+    });
+
+    var all = el("button", "filter-chip active",
+      'All <span class="filter-count">' + DATA.projects.length + "</span>");
+    all.type = "button";
+    all.setAttribute("role", "tab");
+    all.setAttribute("aria-selected", "true");
+    all.dataset.filter = "*";
+    bar.appendChild(all);
+
+    cats.forEach(function (c) {
+      var n = DATA.projects.filter(function (p) { return p.category === c; }).length;
+      var chip = el("button", "filter-chip",
+        esc(c) + ' <span class="filter-count">' + n + "</span>");
+      chip.type = "button";
+      chip.setAttribute("role", "tab");
+      chip.setAttribute("aria-selected", "false");
+      chip.dataset.filter = c;
+      bar.appendChild(chip);
+    });
+
+    bar.addEventListener("click", function (e) {
+      var chip = e.target.closest(".filter-chip");
+      if (!chip) return;
+      var f = chip.dataset.filter;
+      Array.prototype.forEach.call(bar.children, function (c) {
+        var on = c === chip;
+        c.classList.toggle("active", on);
+        c.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      var cards = Array.prototype.slice.call(list.children);
+      cards.forEach(function (card) {
+        var show = f === "*" || card.dataset.category === f;
+        if (reduceMotion) {
+          card.style.display = show ? "" : "none";
+          return;
+        }
+        if (show) {
+          card.style.display = "";
+          card.classList.remove("filtering-out");
+          requestAnimationFrame(function () { card.classList.add("visible"); });
+        } else {
+          card.classList.add("filtering-out");
+          card.classList.remove("visible");
+          setTimeout(function () { if (card.classList.contains("filtering-out")) card.style.display = "none"; }, 300);
+        }
+      });
+    });
+  }
+
+  /* ---------- Tech ticker ---------- */
+  function initTicker() {
+    var track = document.getElementById("tickerTrack");
+    if (!track) return;
+    var seen = {};
+    var items = [];
+    DATA.projects.forEach(function (p) {
+      (p.tech || []).forEach(function (t) {
+        if (!seen[t]) { seen[t] = 1; items.push(t); }
+      });
+    });
+    var extra = ["Gameplay Systems", "Procedural Generation", "Real-time Rendering", "WebAudio"];
+    extra.forEach(function (t) { if (!seen[t]) { seen[t] = 1; items.push(t); } });
+
+    function fill() {
+      var frag = "";
+      items.forEach(function (t) { frag += '<span class="ticker-item">' + esc(t) + "</span>"; });
+      return frag;
+    }
+    track.innerHTML = fill() + fill();
+  }
+
+  /* ---------- Project modal ---------- */
+  var modal = document.getElementById("projectModal");
+  var modalBody = document.getElementById("modalBody");
+  var modalOpen = false;
+  var lastFocused = null;
+
+  function openProject(id) {
+    var p = null;
+    DATA.projects.forEach(function (x) { if (x.id === id) p = x; });
+    if (!p || !p.detail || !modal) return;
+
+    var html = "";
+    html += '<div class="modal-hero">';
+    html += '<span class="modal-cat">' + esc(p.category) + " · " + esc(p.year) + "</span>";
+    html += '<h3 id="modalTitle">' + esc(p.title) + "</h3>";
+    if (p.role) html += '<p class="modal-role">' + esc(p.role) + "</p>";
+    html += '<span class="modal-status">' + esc(p.status) + "</span>";
+    html += "</div>";
+    html += '<div class="modal-content">';
+
+    var d = p.detail;
+    html += "<h4>The Problem</h4><p>" + esc(d.problem) + "</p>";
+    html += "<h4>The Approach</h4><p>" + esc(d.approach) + "</p>";
+    html += "<h4>My Contribution</h4><p>" + esc(d.contribution) + "</p>";
+
+    if (d.challenges && d.challenges.length) {
+      html += "<h4>Notable Challenges</h4><ul>";
+      d.challenges.forEach(function (c) { html += "<li>" + esc(c) + "</li>"; });
+      html += "</ul>";
+    }
+
+    if (p.tech && p.tech.length) {
+      html += "<h4>Stack</h4><div class=\"modal-tech\">";
+      p.tech.forEach(function (t) { html += "<span>" + esc(t) + "</span>"; });
+      html += "</div>";
+    }
+
+    if (p.links && p.links.length) {
+      html += '<div class="modal-actions">';
+      p.links.forEach(function (l) {
+        html += '<a href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer" class="' +
+          (l.primary ? "primary" : "") + '">' + esc(l.label) + " →</a>";
+      });
+      html += "</div>";
+    }
+    html += "</div>";
+
+    modalBody.innerHTML = html;
+    lastFocused = document.activeElement;
+    modal.hidden = false;
+    document.body.classList.add("locked");
+    requestAnimationFrame(function () {
+      modal.classList.add("open");
+      var close = modal.querySelector(".modal-close");
+      if (close) close.focus();
+    });
+    modalOpen = true;
+    if (window.__lenis && window.__lenis.stop) window.__lenis.stop();
+  }
+
+  function closeModal() {
+    if (!modal || !modalOpen) return;
+    modal.classList.remove("open");
+    modalOpen = false;
+    if (window.__lenis && window.__lenis.start) window.__lenis.start();
+    setTimeout(function () {
+      modal.hidden = true;
+      modalBody.innerHTML = "";
+      document.body.classList.remove("locked");
+      if (lastFocused && lastFocused.focus) lastFocused.focus();
+    }, 320);
+  }
+
+  document.addEventListener("click", function (e) {
+    var dbtn = e.target.closest("[data-project-id]");
+    if (dbtn) { openProject(dbtn.getAttribute("data-project-id")); return; }
+    if (e.target.closest("[data-modal-close]")) { closeModal(); }
+  });
+
+  /* ---------- Command palette ---------- */
+  var cmdk = document.getElementById("cmdk");
+  var cmdkInput = document.getElementById("cmdkInput");
+  var cmdkList = document.getElementById("cmdkList");
+  var cmdkTrigger = document.getElementById("cmdkTrigger");
+  var cmdkIndex = 0;
+  var cmdkItems = [];
+  var cmdkOpen = false;
+
+  function buildCommands() {
+    var cmds = [
+      { title: "Home", sub: "Section", icon: "⌂", kind: "Jump", action: function () { go("#home"); } },
+      { title: "About", sub: "Section", icon: "◔", kind: "Jump", action: function () { go("#about"); } },
+      { title: "Selected Builds", sub: "Section", icon: "▦", kind: "Jump", action: function () { go("#projects"); } },
+      { title: "Skills", sub: "Section", icon: "✳", kind: "Jump", action: function () { go("#skills"); } },
+      { title: "Journey", sub: "Section", icon: "⌛", kind: "Jump", action: function () { go("#journey"); } },
+      { title: "Contact", sub: "Section", icon: "✉", kind: "Jump", action: function () { go("#contact"); } },
+      { title: "GitHub", sub: "github.com/mdhanvantar-web", icon: "GH", kind: "Link", action: function () { ext("https://github.com/mdhanvantar-web"); } },
+      { title: "LinkedIn", sub: "Monish Dhanvantar Sambangi", icon: "in", kind: "Link", action: function () { ext("https://www.linkedin.com/in/monish-dhanvantar-sambangi-954397377/"); } },
+      { title: "Email Monish", sub: "monishdhanvantar20@gmail.com", icon: "@", kind: "Link", action: function () { window.location.href = "mailto:monishdhanvantar20@gmail.com"; closeCmdk(); } }
+    ];
+    DATA.projects.forEach(function (p) {
+      if (p.detail) {
+        cmds.push({ title: p.title, sub: "Case study — " + p.category, icon: "◆", kind: "Project", action: function () { closeCmdk(); openProject(p.id); } });
+      }
+      var primary = (p.links || []).filter(function (l) { return l.primary; })[0];
+      if (primary) {
+        cmds.push({ title: p.title + " — " + primary.label, sub: primary.url, icon: "↗", kind: "Open", action: function () { ext(primary.url); } });
+      }
+    });
+    return cmds;
+  }
+
+  function go(hash) {
+    closeCmdk();
+    var t = document.querySelector(hash);
+    if (t) t.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+  }
+  function ext(url) {
+    closeCmdk();
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  var cmdkAll = [];
+
+  function renderCmdk(query) {
+    var q = (query || "").toLowerCase().trim();
+    cmdkItems = cmdkAll.filter(function (c) {
+      if (!q) return true;
+      return (c.title + " " + c.sub + " " + c.kind).toLowerCase().indexOf(q) !== -1;
+    });
+    cmdkIndex = 0;
+    cmdkList.innerHTML = "";
+    cmdkItems.forEach(function (c, i) {
+      var li = el("li", "cmdk-item" + (i === 0 ? " active" : ""),
+        '<span class="ci-icon">' + esc(c.icon) + "</span>" +
+        '<span class="ci-text"><span class="ci-title">' + esc(c.title) + "</span>" +
+        '<span class="ci-sub">' + esc(c.sub) + "</span></span>" +
+        '<span class="ci-kind">' + esc(c.kind) + "</span>");
+      li.setAttribute("role", "option");
+      li.dataset.index = String(i);
+      cmdkList.appendChild(li);
+    });
+  }
+
+  function highlight(i) {
+    var lis = Array.prototype.slice.call(cmdkList.children);
+    if (!lis.length) return;
+    if (i < 0) i = lis.length - 1;
+    if (i >= lis.length) i = 0;
+    cmdkIndex = i;
+    lis.forEach(function (li, k) {
+      li.classList.toggle("active", k === i);
+      if (k === i) li.scrollIntoView({ block: "nearest" });
+    });
+  }
+
+  function openCmdk() {
+    if (!cmdk) return;
+    cmdkAll = buildCommands();
+    renderCmdk("");
+    lastFocused = document.activeElement;
+    cmdk.hidden = false;
+    requestAnimationFrame(function () {
+      cmdk.classList.add("open");
+      cmdkInput.value = "";
+      cmdkInput.focus();
+    });
+    cmdkOpen = true;
+    document.body.classList.add("locked");
+  }
+  function closeCmdk() {
+    if (!cmdk || !cmdkOpen) return;
+    cmdk.classList.remove("open");
+    cmdkOpen = false;
+    document.body.classList.remove("locked");
+    setTimeout(function () { cmdk.hidden = true; }, 220);
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+  }
+
+  if (cmdk && cmdkInput && cmdkList) {
+    cmdkTrigger && cmdkTrigger.addEventListener("click", openCmdk);
+    cmdkInput.addEventListener("input", function () { renderCmdk(cmdkInput.value); });
+    cmdk.addEventListener("click", function (e) {
+      if (e.target.closest("[data-cmdk-close]")) { closeCmdk(); return; }
+      var item = e.target.closest(".cmdk-item");
+      if (item) {
+        var c = cmdkItems[Number(item.dataset.index)];
+        if (c) c.action();
+      }
+    });
+    document.addEventListener("keydown", function (e) {
+      var metaK = (e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K");
+      if (metaK) { e.preventDefault(); cmdkOpen ? closeCmdk() : openCmdk(); return; }
+      if (!cmdkOpen) return;
+      if (e.key === "Escape") { closeCmdk(); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); highlight(cmdkIndex + 1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); highlight(cmdkIndex - 1); }
+      else if (e.key === "Enter") {
+        e.preventDefault();
+        var c = cmdkItems[cmdkIndex];
+        if (c) c.action();
+      }
+    });
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && modalOpen) closeModal();
+  });
+
   /* ---------- Boot ---------- */
   renderProjects();
   renderSkills();
   renderJourney();
+  initFilters();
+  initTicker();
   initReveal();
 })();
