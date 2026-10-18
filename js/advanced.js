@@ -79,13 +79,40 @@
     disposables.push(pGeo, pMat);
 
     /* Lights */
-    scene.add(new THREE.AmbientLight(0x46403a, 1.1));
+    var ambient = new THREE.AmbientLight(0x46403a, 1.1);
+    scene.add(ambient);
     var key = new THREE.PointLight(0xc5a16a, 1.5, 26);
     key.position.set(6, 5, 6);
     scene.add(key);
     var rim = new THREE.PointLight(0xa77c48, 0.9, 24);
     rim.position.set(-7, -3, 3);
     scene.add(rim);
+
+    /* Theme-aware recolouring */
+    function applyTheme(theme) {
+      var light = theme === "light";
+      scene.fog.color.setHex(light ? 0xefe7d7 : 0x0b0b0a);
+      scene.fog.density = light ? 0.06 : 0.075;
+      outerMat.color.setHex(light ? 0x7d5a2c : 0xa77c48);
+      outerMat.opacity = light ? 0.42 : 0.32;
+      edgeMat.color.setHex(light ? 0x8a6428 : 0xc5a16a);
+      edgeMat.opacity = light ? 0.6 : 0.5;
+      innerMat.color.setHex(light ? 0xded2ba : 0x2b2620);
+      innerMat.metalness = light ? 0.34 : 0.72;
+      innerMat.roughness = light ? 0.55 : 0.38;
+      pMat.color.setHex(light ? 0x8a6428 : 0xc5a16a);
+      pMat.opacity = light ? 0.5 : 0.65;
+      ambient.color.setHex(light ? 0xfff4e2 : 0x46403a);
+      ambient.intensity = light ? 1.0 : 1.1;
+      key.color.setHex(light ? 0x9c7538 : 0xc5a16a);
+      key.intensity = light ? 1.1 : 1.5;
+      rim.color.setHex(light ? 0x7d5a2c : 0xa77c48);
+      rim.intensity = light ? 0.7 : 0.9;
+    }
+    applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
+    window.addEventListener("portfolio:theme", function () {
+      applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
+    });
 
     /* Pointer parallax */
     var target = { x: 0, y: 0 };

@@ -483,6 +483,7 @@
       { title: "Skills", sub: "Section", icon: "✳", kind: "Jump", action: function () { go("#skills"); } },
       { title: "Journey", sub: "Section", icon: "⌛", kind: "Jump", action: function () { go("#journey"); } },
       { title: "Contact", sub: "Section", icon: "✉", kind: "Jump", action: function () { go("#contact"); } },
+      { title: currentTheme() === "light" ? "Switch to dark theme" : "Switch to light theme", sub: "Appearance", icon: "◐", kind: "Theme", action: function () { setTheme(currentTheme() === "light" ? "dark" : "light", true); closeCmdk(); } },
       { title: "GitHub", sub: "github.com/mdhanvantar-web", icon: "GH", kind: "Link", action: function () { ext("https://github.com/mdhanvantar-web"); } },
       { title: "LinkedIn", sub: "Monish Dhanvantar Sambangi", icon: "in", kind: "Link", action: function () { ext("https://www.linkedin.com/in/monish-dhanvantar-sambangi-954397377/"); } },
       { title: "Email Monish", sub: "monishdhanvantar20@gmail.com", icon: "@", kind: "Link", action: function () { window.location.href = "mailto:monishdhanvantar20@gmail.com"; closeCmdk(); } }
@@ -595,6 +596,38 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && modalOpen) closeModal();
   });
+
+  /* ---------- Theme ---------- */
+  var themeToggle = document.getElementById("themeToggle");
+  var metaTheme = document.getElementById("metaThemeColor");
+
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") || "dark";
+  }
+  function syncThemeMeta(t) {
+    if (metaTheme) metaTheme.setAttribute("content", t === "light" ? "#efe7d7" : "#0b0b0a");
+    if (themeToggle) {
+      themeToggle.setAttribute("aria-label", "Switch to " + (t === "light" ? "dark" : "light") + " theme");
+      themeToggle.setAttribute("title", "Switch to " + (t === "light" ? "dark" : "light") + " theme");
+    }
+  }
+  function setTheme(t, animate) {
+    document.documentElement.setAttribute("data-theme", t);
+    try { localStorage.setItem("theme", t); } catch (e) {}
+    syncThemeMeta(t);
+    if (animate) {
+      var root = document.documentElement;
+      root.classList.add("theme-transition");
+      setTimeout(function () { root.classList.remove("theme-transition"); }, 520);
+    }
+    window.dispatchEvent(new CustomEvent("portfolio:theme", { detail: { theme: t } }));
+  }
+  if (themeToggle) {
+    syncThemeMeta(currentTheme());
+    themeToggle.addEventListener("click", function () {
+      setTheme(currentTheme() === "light" ? "dark" : "light", true);
+    });
+  }
 
   /* ---------- Boot ---------- */
   renderProjects();
