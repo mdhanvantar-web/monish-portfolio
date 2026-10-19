@@ -39,7 +39,7 @@
   var GROUND_Y = 480;
   var GRAVITY = 2000;
   var MOVE = 208, ACCEL = 1700, FRICTION = 1900;
-  var JUMP_V = -642, MAX_FALL = 900;
+  var JUMP_V = -700, MAX_FALL = 900;
   var WORLD_W = 6600;
 
   /* ---------- state ---------- */
@@ -106,6 +106,7 @@
 
   /* ---------- world ---------- */
   var solids = [], markers = [], coinList = [], enemies = [], deco = [];
+  var qblockCount = 0;
   function addSolid(x, y, w, h, kind) { solids.push({ x: x, y: y, w: w, h: h, kind: kind || "stone" }); }
   function addMarker(x, y, w, h, label, action, kind) {
     var m = { x: x, y: y, w: w, h: h, label: label, action: action, kind: kind || "portal" };
@@ -125,17 +126,19 @@
     addSolid(3160, GROUND_Y, 3440, 64, "ground");
 
     /* floating platforms */
-    addSolid(640, 384, 128, 20, "ledge");
-    addSolid(840, 318, 128, 20, "ledge");
-    addSolid(1620, 372, 150, 20, "ledge");
-    addSolid(2020, 336, 120, 20, "ledge");
-    addSolid(2600, 372, 130, 20, "ledge");
-    addSolid(3050, 356, 110, 20, "ledge");
-    addSolid(3290, 386, 140, 20, "ledge");
-    addSolid(3760, 340, 130, 20, "ledge");
-    addSolid(4180, 386, 150, 20, "ledge");
-    addSolid(4760, 340, 130, 20, "ledge");
-    addSolid(5320, 372, 150, 20, "ledge");
+    /* floating platforms — every top is a short jump from the ground
+       (full jump height is ~117px, so tops sit ~80-92px up) */
+    addSolid(640, 388, 128, 20, "ledge");
+    addSolid(800, 400, 120, 20, "ledge");
+    addSolid(1620, 392, 150, 20, "ledge");
+    addSolid(2020, 400, 120, 20, "ledge");
+    addSolid(2600, 392, 130, 20, "ledge");
+    addSolid(3050, 400, 110, 20, "ledge");
+    addSolid(3290, 392, 140, 20, "ledge");
+    addSolid(3760, 392, 130, 20, "ledge");
+    addSolid(4180, 392, 150, 20, "ledge");
+    addSolid(4760, 400, 130, 20, "ledge");
+    addSolid(5320, 392, 150, 20, "ledge");
 
     /* ── Segment 1 — About ── */
     addMarker(560, GROUND_Y - 60, 34, 60, "About Me", "about", "sign");
@@ -163,7 +166,7 @@
     contactMarker = addMarker(6220, GROUND_Y - 150, 46, 150, "Contact", "contact", "banner");
 
     /* relics */
-    [[300, 300], [688, 340], [888, 274], [1100, 420], [1668, 328], [2068, 292],
+    [[300, 344], [688, 340], [888, 274], [1100, 420], [1668, 328], [2068, 292],
      [2450, 430], [2648, 328], [3098, 312], [3348, 342], [3800, 296], [4230, 342],
      [4700, 430], [4808, 296], [5368, 328], [5900, 420]].forEach(function (c) { addCoin(c[0], c[1]); });
 
@@ -200,18 +203,21 @@
     addPipe(5060, 64);
     addQBlock(1150, 352); addQBlock(1182, 352); addQBlock(1214, 352);
     addQBlock(4380, 352); addQBlock(4412, 352); addQBlock(4444, 352);
-    addSolid(2050, 352, 32, 32, "brick");
-    addSolid(2082, 352, 32, 32, "brick");
-    addSolid(2114, 352, 32, 32, "brick");
+    addSolid(2200, 400, 32, 32, "brick");
+    addSolid(2232, 400, 32, 32, "brick");
+    addSolid(2264, 400, 32, 32, "brick");
 
-    hudCoinsTotal.textContent = "/" + coinList.length;
+    hudCoinsTotal.textContent = "/" + coinTotal();
   }
+
+  function coinTotal() { return coinList.length + qblockCount; }
 
   function addPipe(x, h) {
     addSolid(x, GROUND_Y - h, 64, h, "pipe");
   }
   function addQBlock(x, y) {
-    addSolid(x, y, 32, 32, "qblock");
+    qblockCount++;
+    solids.push({ x: x, y: y, w: 32, h: 32, kind: "qblock", used: false, bump: 0 });
   }
 
   /* ---------- player ---------- */
@@ -260,6 +266,8 @@
           player.vy = 0;
         } else if (player.vy < 0) {
           player.y = t.y + t.h; player.vy = 0;
+          if (t.kind === "qblock") hitQBlock(t);
+          else if (t.kind === "brick") t.bump = 0.12;
         }
       }
     }
@@ -309,6 +317,11 @@
 
     moveAndCollide(dt);
 
+    /* block bump timers */
+    for (var sb = 0; sb < solids.length; sb++) {
+      if (solids[sb].bump > 0) solids[sb].bump -= dt;
+    }
+
     /* reach the banner pole → run-out */
     if (!finish.active && !finish.done && contactMarker) {
       var poleCenter = contactMarker.x + contactMarker.w / 2;
@@ -340,7 +353,7 @@
       if (dx * dx + dy * dy < 26 * 26) {
         co.taken = true; coins++; hudCoins.textContent = coins; sfx("coin");
         puff(co.x, co.y, "#fac000", 6, 2.9);
-        live.textContent = coins + " of " + coinList.length + " relics collected";
+        live.textContent = coins + " of " + coinTotal() + " relics collected";
       }
     }
 
@@ -485,6 +498,18 @@
   function poleCenterX() { return contactMarker.x + contactMarker.w / 2; }
   function poleCenterXPos() { return poleCenterX() - player.w / 2 + 3; }
 
+  function hitQBlock(b) {
+    b.bump = 0.16;
+    if (b.used) { sfx("land"); return; }
+    b.used = true;
+    coins++;
+    hudCoins.textContent = coins;
+    sfx("coin");
+    fx.parts.push({ x: b.x + b.w / 2, y: b.y, vx: (Math.random() - 0.5) * 36, vy: -430, life: 0, max: 0.7, r: 8, col: "#fac000", grav: 900, coinPop: true });
+    puff(b.x + b.w / 2, b.y + 4, "#ffffff", 4, 2.2);
+    live.textContent = "Bonus coin! " + coins + " of " + coinTotal() + " collected";
+  }
+
   function puff(x, y, col, n, spread) {
     for (var i = 0; i < (n || 5); i++) {
       var a = -Math.PI / 2 + (Math.random() - 0.5) * (spread || 2.4);
@@ -553,7 +578,16 @@
       q = fx.parts[i];
       x = q.x - cam.x;
       if (x < -40 || x > W + 40) continue;
-      if (q.rocket) {
+      if (q.coinPop) {
+        a = 1 - q.life / q.max; if (a < 0) a = 0;
+        var cw = Math.abs(Math.cos(q.life * 16)) * (q.r - 1.5) + 1.5;
+        ctx.globalAlpha = a;
+        ctx.fillStyle = "#fac000";
+        ctx.beginPath(); ctx.ellipse(x, q.y, cw, q.r, 0, 0, 6.28); ctx.fill();
+        ctx.fillStyle = "#c89600";
+        ctx.beginPath(); ctx.ellipse(x, q.y, Math.max(0, cw - 2), Math.max(0, q.r - 2), 0, 0, 6.28); ctx.fill();
+        ctx.globalAlpha = 1;
+      } else if (q.rocket) {
         ctx.fillStyle = q.col; ctx.globalAlpha = 0.55; ctx.fillRect(x - 1, q.y + 2, 2, 10);
         ctx.globalAlpha = 1; ctx.fillStyle = "#ffffff"; ctx.fillRect(x - 2, q.y - 1, 4, 6);
       } else {
@@ -594,7 +628,7 @@
     ctx.fillText("WORLD COMPLETE", W / 2, by + 38);
     ctx.fillStyle = "#eaf2ff";
     ctx.font = "9px 'Press Start 2P', monospace";
-    ctx.fillText("RELICS " + coins + "/" + coinList.length + "   BANNER REACHED", W / 2, by + 62);
+    ctx.fillText("RELICS " + coins + "/" + coinTotal() + "   BANNER REACHED", W / 2, by + 62);
     ctx.fillStyle = "#9fb6e0";
     ctx.font = "8px 'Press Start 2P', monospace";
     ctx.fillText("THANKS FOR PLAYING", W / 2, by + 82);
@@ -607,7 +641,7 @@
     var p = {
       cloud: "#ffffff", cloudShade: "#d6e8ff", sun: "#fff2b0",
       pipe: "#00a800", pipeLight: "#58d854", pipeDark: "#0a5a0a",
-      qblock: "#fac000", qblockDark: "#8a4800", qblockLight: "#fff0a0",
+      qblock: "#fac000", qblockDark: "#8a4800", qblockLight: "#fff0a0", qblockUsed: "#c8842c",
       grass: "#3cb54a", grassDark: "#2a8a36",
       skin: "#f5c29b", shoe: "#5a3210", pupil: "#1a1a1a", eye: "#ffffff"
     };
@@ -717,19 +751,29 @@
     ctx.strokeRect(x - 5, y + 1, w + 10, 16);
   }
 
-  function drawQBlock(x, y, w, h, p) {
-    ctx.fillStyle = p.qblock; ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = p.qblockLight; ctx.fillRect(x + 2, y + 2, w - 4, 3);
-    ctx.fillStyle = p.qblockDark; ctx.fillRect(x, y + h - 4, w, 4);
-    ctx.strokeStyle = p.qblockDark; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
-    ctx.fillStyle = p.qblockDark;
-    ctx.fillRect(x + 3, y + 3, 3, 3); ctx.fillRect(x + w - 6, y + 3, 3, 3);
-    ctx.fillRect(x + 3, y + h - 6, 3, 3); ctx.fillRect(x + w - 6, y + h - 6, 3, 3);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 18px 'IBM Plex Mono', monospace";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("?", x + w / 2, y + h / 2 + 1);
-    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  function drawQBlock(x, y, w, h, p, s) {
+    var used = s && s.used;
+    ctx.fillStyle = used ? p.qblockUsed : p.qblock;
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = used ? "rgba(255,255,255,.10)" : p.qblockLight;
+    ctx.fillRect(x + 2, y + 2, w - 4, 3);
+    ctx.fillStyle = used ? "rgba(0,0,0,.22)" : p.qblockDark;
+    ctx.fillRect(x, y + h - 4, w, 4);
+    ctx.strokeStyle = used ? "rgba(0,0,0,.28)" : p.qblockDark;
+    ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+    if (!used) {
+      ctx.fillStyle = p.qblockDark;
+      ctx.fillRect(x + 3, y + 3, 3, 3); ctx.fillRect(x + w - 6, y + 3, 3, 3);
+      ctx.fillRect(x + 3, y + h - 6, 3, 3); ctx.fillRect(x + w - 6, y + h - 6, 3, 3);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px 'IBM Plex Mono', monospace";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("?", x + w / 2, y + h / 2 + 1);
+      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    } else {
+      ctx.fillStyle = "rgba(0,0,0,.30)";
+      ctx.beginPath(); ctx.arc(x + w / 2, y + h / 2, 4, 0, 6.28); ctx.fill();
+    }
   }
 
   function drawSolids(p) {
@@ -738,7 +782,18 @@
       var x = s.x - cam.x, y = s.y;
       if (x + s.w < -40 || x > W + 40) continue;
       if (s.kind === "pipe") { drawPipe(x, y, s.w, s.h, p); continue; }
-      if (s.kind === "qblock") { drawQBlock(x, y, s.w, s.h, p); continue; }
+      if (s.kind === "qblock") {
+        var qy = y - (s.bump > 0 ? Math.sin((s.bump / 0.16) * Math.PI) * 5 : 0);
+        drawQBlock(x, qy, s.w, s.h, p, s); continue;
+      }
+      if (s.kind === "brick" && s.bump > 0) {
+        var byy = y - Math.sin((s.bump / 0.12) * Math.PI) * 4;
+        ctx.fillStyle = p.ground; ctx.fillRect(x, byy, s.w, s.h);
+        ctx.strokeStyle = p.brickLine; ctx.lineWidth = 2;
+        for (var bbx = 0; bbx <= s.w; bbx += 16) { ctx.beginPath(); ctx.moveTo(x + bbx, byy); ctx.lineTo(x + bbx, byy + s.h); ctx.stroke(); }
+        for (var bby = 0; bby <= s.h; bby += 16) { ctx.beginPath(); ctx.moveTo(x, byy + bby); ctx.lineTo(x + s.w, byy + bby); ctx.stroke(); }
+        continue;
+      }
 
       ctx.fillStyle = p.ground;
       ctx.fillRect(x, y, s.w, s.h);
@@ -1226,7 +1281,7 @@
   /* ---------- boot ---------- */
   buildWorld();
   bindTouch();
-  hudCoinsTotal.textContent = "/" + coinList.length;
+  hudCoinsTotal.textContent = "/" + coinTotal();
 
   var savedMode = null;
   try { savedMode = localStorage.getItem("portfolio-mode"); } catch (e) {}
@@ -1243,9 +1298,11 @@
   window.__portfolioGame = {
     state: function () { return state; },
     player: function () { return { x: player.x, y: player.y, vx: player.vx, vy: player.vy, onGround: player.onGround }; },
-    coins: function () { return { got: coins, total: coinList.length }; },
+    coins: function () { return { got: coins, total: coinTotal() }; },
+    relics: function () { return coinList.map(function (c) { return { x: c.x, y: c.y, taken: c.taken }; }); },
     markers: function () { return markers.map(function (m) { return { label: m.label, action: m.action, kind: m.kind, x: m.x }; }); },
     zones: function () { return WORLD_W; },
+    solids: function () { return solids.map(function (s) { return { x: s.x, y: s.y, w: s.w, h: s.h, kind: s.kind, used: !!s.used }; }); },
     open: function (i) { openMarker(markers[i]); },
     close: closePanel,
     toReader: enterReadMode,
