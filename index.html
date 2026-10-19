@@ -25,11 +25,191 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23e52521'/%3E%3Cpath d='M32 6 L58 32 L32 58 L6 32 Z' fill='none' stroke='%23fac000' stroke-width='2.5'/%3E%3Ctext x='32' y='39' font-family='Georgia' font-size='22' fill='%23ffffff' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pixelify+Sans:wght@400..700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link id="webfonts" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pixelify+Sans:wght@400..700&family=Press+Start+2P&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pixelify+Sans:wght@400..700&family=Press+Start+2P&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/game.css">
+  <style>
+  /* ══ BOOT SCREEN — critical styles, inline so it paints first ══ */
+  .boot {
+    position: fixed; inset: 0; z-index: 9999;
+    display: grid; place-items: center;
+    padding: 1.5rem; background: #0a1733;
+    opacity: 1; transition: opacity .38s steps(6);
+  }
+  .boot.is-done { opacity: 0; pointer-events: none; }
+  .boot[hidden] { display: none !important; }
+  .boot::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(180deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+  }
+  .boot::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(115% 85% at 50% 42%, transparent 36%, rgba(2,6,22,.9) 100%);
+  }
+  .boot-inner { position: relative; z-index: 1; width: min(520px, 100%); text-align: center; }
+  .boot-mark {
+    display: block; width: 62px; height: 62px; margin: 0 auto 1.1rem;
+    animation: bootBob 1.3s steps(2) infinite;
+  }
+  .boot-mark svg { display: block; width: 100%; height: 100%; }
+  .boot-title {
+    font-family: var(--display); font-size: clamp(1.9rem, 7vw, 2.9rem);
+    font-weight: 700; color: #ffffff; line-height: 1.05; letter-spacing: 0;
+    text-shadow: 0 4px 0 rgba(0,0,0,.5);
+  }
+  .boot-role {
+    font-family: var(--arcade); font-size: 8.5px; font-weight: 400;
+    letter-spacing: .08em; text-transform: uppercase; color: #8fb0e8;
+    margin-top: .75rem; line-height: 1.7;
+  }
+  .boot-meta {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    margin-top: 1.9rem;
+    font-family: var(--arcade); font-size: 9px; font-weight: 400;
+    text-transform: uppercase; letter-spacing: 0; line-height: 1.6;
+  }
+  .boot-status { color: #aabde4; text-align: left; }
+  .boot-status::after {
+    content: ""; display: inline-block; width: 7px; height: 10px;
+    background: var(--gold); margin-left: 7px; vertical-align: -1px;
+    animation: bootBlink .9s steps(2) infinite;
+  }
+  .boot-pct { color: var(--gold); font-variant-numeric: tabular-nums; }
+  .boot-track {
+    margin-top: .7rem; height: 26px; padding: 3px;
+    background: var(--field-bg); border: 3px solid #12233f;
+    box-shadow: 5px 5px 0 rgba(2,6,22,.55);
+  }
+  .boot-fill {
+    height: 100%; width: 0%;
+    background-color: var(--gold);
+    background-image: repeating-linear-gradient(90deg, transparent 0 13px, rgba(5,12,31,.85) 13px 16px);
+    transition: width .15s linear;
+  }
+  .boot-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  body.booting { cursor: progress; }
+  @keyframes bootBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+  @keyframes bootBlink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .boot { transition: none; }
+    .boot-mark, .boot-status::after { animation: none; }
+  }
+  </style>
 </head>
 <body class="mode-game">
+
+<!-- ══════════ BOOT — loading screen ══════════ -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot-inner">
+    <span class="boot-mark">
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <path d="M32 4 L60 32 L32 60 L4 32 Z" fill="none" stroke="#d4201c" stroke-width="3"/>
+        <path d="M32 13 L51 32 L32 51 L13 32 Z" fill="rgba(250,192,0,.16)" stroke="#fac000" stroke-width="2"/>
+        <text x="32" y="39" font-family="'Press Start 2P',Arial,sans-serif" font-size="15" fill="#ffffff" text-anchor="middle">M</text>
+      </svg>
+    </span>
+    <p class="boot-title">Monish Dhanvantar</p>
+    <p class="boot-role">Game Developer &nbsp;/&nbsp; Software Engineer</p>
+    <div class="boot-meta">
+      <span class="boot-status" id="bootStatus">Booting world</span>
+      <span class="boot-pct"><span id="bootPct">0</span>%</span>
+    </div>
+    <div class="boot-track"><div class="boot-fill" id="bootFill"></div></div>
+  </div>
+</div>
+<span class="boot-live" id="bootLive" role="status" aria-live="polite"></span>
+
+<script>
+(function () {
+  var boot = document.getElementById("boot");
+  if (!boot) return;
+  var fill = document.getElementById("bootFill");
+  var pct = document.getElementById("bootPct");
+  var status = document.getElementById("bootStatus");
+  var live = document.getElementById("bootLive");
+  var fontsLink = document.getElementById("webfonts");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var MIN = reduce ? 0 : 600, MAX = 6000;
+  var t0 = Date.now(), last = t0, target = 8, shown = 0;
+  var domReady = false, loaded = false, fontsDone = false, ended = false;
+  var roots = [];
+
+  document.body.classList.add("booting");
+
+  function say(msg) { if (ended) return; if (status && status.textContent !== msg) status.textContent = msg; }
+  function bump(v, msg) { if (ended) return; if (v > target) target = v; if (msg) say(msg); }
+  function paint() {
+    if (fill) fill.style.width = shown.toFixed(1) + "%";
+    if (pct) pct.textContent = Math.round(shown);
+  }
+  /* the script runs before #gameRoot/#reader are parsed, so inert is
+     applied lazily at DOMContentLoaded (or on first frame if already past) */
+  function lockRoots(on) {
+    if (!roots.length) roots = [document.getElementById("gameRoot"), document.getElementById("reader")];
+    for (var i = 0; i < roots.length; i++) if (roots[i]) roots[i].inert = on;
+  }
+  function fontsSettled() {
+    if (fontsDone) return;
+    fontsDone = true;
+    bump(80, "Loading typeface");
+  }
+  function loadFonts() {
+    if (!document.fonts || !document.fonts.load) { fontsSettled(); return; }
+    Promise.all([
+      document.fonts.load('16px "Press Start 2P"'),
+      document.fonts.load('16px "Pixelify Sans"'),
+      document.fonts.load('16px "Inter"')
+    ]).then(fontsSettled, fontsSettled);
+    setTimeout(fontsSettled, 2500); /* never stall the reveal on fonts */
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    domReady = true;
+    lockRoots(true);
+    bump(45, "Building sections");
+  });
+  if (document.readyState === "complete") { domReady = loaded = true; lockRoots(true); bump(96, "Waking the canvas"); }
+  else window.addEventListener("load", function () { loaded = true; bump(96, "Waking the canvas"); });
+
+  if (fontsLink && fontsLink.media === "all") loadFonts();
+  else if (fontsLink) fontsLink.addEventListener("load", loadFonts);
+  else fontsSettled();
+
+  var hardStop = setTimeout(function () { shown = 100; target = 100; paint(); finish(); }, MAX);
+
+  function frame() {
+    if (ended) return;
+    var now = Date.now();
+    var dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (!domReady && document.readyState !== "loading") { domReady = true; lockRoots(true); }
+    var t = now - t0;
+    if (t > MAX) { loaded = true; fontsDone = true; }
+    if (loaded && fontsDone && t >= MIN) target = 100;
+    if (reduce) shown = target;
+    else shown += (target - shown) * (1 - Math.exp(-dt * 6)); /* time-based ease, fps-independent */
+    if (target === 100 && shown > 99.4) shown = 100;
+    if (target === 100 && shown > 96) say("Ready");
+    paint();
+    if (shown >= 100) { finish(); return; }
+    requestAnimationFrame(frame);
+  }
+
+  function finish() {
+    if (ended) return;
+    ended = true;
+    clearTimeout(hardStop);
+    say("Ready");
+    if (live) live.textContent = "Portfolio loaded";
+    boot.classList.add("is-done");
+    document.body.classList.remove("booting");
+    lockRoots(false);
+    setTimeout(function () { boot.hidden = true; }, reduce ? 0 : 420);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
 
 <!-- ══════════ GAME — the primary experience ══════════ -->
 <div class="game-root" id="gameRoot">
@@ -432,7 +612,7 @@
 </div><!-- /#reader -->
 
 <noscript>
-  <style>.game-root{display:none !important}.reader{display:block !important}</style>
+  <style>.boot{display:none !important}.game-root{display:none !important}.reader{display:block !important}</style>
 </noscript>
 
 <script src="js/vendor/gsap.min.js"></script>
