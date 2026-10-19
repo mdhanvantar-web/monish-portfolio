@@ -41,7 +41,7 @@ window.PORTFOLIO = {
           "Keeping it playable across input devices — pointer-lock on desktop, an auto-appearing touch overlay, and full gamepad support."
         ]
       },
-      image: "assets/projects/neon-wordmark.png",
+      image: "assets/projects/neon-wordmark.webp",
       imageAlt: "Neon Breach game wordmark emblem",
       coverStyle: "neon"
     },
@@ -78,7 +78,7 @@ window.PORTFOLIO = {
           "Reading an unfamiliar React + TypeScript codebase end to end as a learning exercise rather than a from-scratch build."
         ]
       },
-      image: "assets/projects/evara-1.png",
+      image: "assets/projects/evara-1.webp",
       imageAlt: "E-VARA identity intelligence dashboard screenshot",
       coverStyle: "screenshot"
     },

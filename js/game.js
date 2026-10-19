@@ -855,15 +855,16 @@
     backBtn = document.createElement("button");
     backBtn.id = "backToGame";
     backBtn.type = "button";
-    backBtn.innerHTML = "▶&nbsp; Enter Game";
+    backBtn.innerHTML = '<svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style="width:12px;height:12px"><path fill="currentColor" d="M3 1.6l11 6.4-11 6.4z"/></svg><span>Enter Game</span>';
     backBtn.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:9999;" +
+      "display:inline-flex;align-items:center;gap:8px;" +
       "font:400 11px/1.5 var(--arcade,monospace);letter-spacing:.04em;text-transform:uppercase;" +
       "padding:13px 18px;border-radius:0;border:3px solid #7d0f0d;cursor:pointer;" +
       "background:#d4201c;color:#fff;box-shadow:5px 5px 0 rgba(2,6,22,.5)";
     backBtn.addEventListener("click", enterGameMode);
     document.body.appendChild(backBtn);
   }
-  function setBackButtonVisible(v) { if (backBtn) backBtn.style.display = v ? "block" : "none"; }
+  function setBackButtonVisible(v) { if (backBtn) backBtn.style.display = v ? "inline-flex" : "none"; }
 
   /* ---------- input ---------- */
   window.addEventListener("keydown", function (e) {
@@ -906,12 +907,11 @@
     soundOn = !soundOn;
     if (soundOn) { initAudio(); tone(880, 0.1, "triangle", 0.05); }
     hudSound.classList.toggle("is-off", !soundOn);
-    hudSound.textContent = soundOn ? "♪" : "✕";
     hudSound.setAttribute("aria-label", soundOn ? "Mute sound" : "Unmute sound");
   });
   function applySky() {
     if (hudTheme) {
-      hudTheme.textContent = skyMode === "day" ? "☾" : "☀";
+      hudTheme.classList.toggle("is-dusk", skyMode !== "day");
       hudTheme.setAttribute("aria-label", skyMode === "day" ? "Switch to dusk" : "Switch to day");
       hudTheme.setAttribute("title", skyMode === "day" ? "Dusk" : "Day");
     }

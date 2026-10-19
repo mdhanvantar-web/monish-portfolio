@@ -383,6 +383,8 @@ section { position: relative; padding: 7rem 0; }
   pointer-events: none;
 }
 
+.icon { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; flex: none; }
+
 /* Original CSS covers (no false screenshot claims) */
 .cover {
   position: absolute; inset: 0; display: flex;
@@ -958,11 +960,13 @@ footer {
 .modal.open .modal-panel { opacity: 1; transform: none; }
 .modal-close {
   position: absolute; top: 1rem; right: 1rem; z-index: 2;
-  width: 42px; height: 42px; border-radius: var(--r-sm);
+  display: grid; place-items: center;
+  width: 42px; height: 42px; padding: 0; border-radius: var(--r-sm);
   background: var(--field-bg); border: 3px solid var(--line);
   color: var(--ivory); font-size: 1.05rem; cursor: pointer;
   transition: background .3s ease, color .3s ease, transform .3s ease;
 }
+.modal-close .icon { width: 16px; height: 16px; }
 .modal-close:hover { background: var(--gold); color: var(--obsidian); transform: rotate(90deg); }
 .modal-body { padding: 0; }
 .modal-hero { padding: 2.8rem 2.8rem 1.6rem; border-bottom: 3px solid var(--line-soft); background: rgba(255,255,255,.03); }
