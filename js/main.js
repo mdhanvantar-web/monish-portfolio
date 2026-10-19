@@ -61,6 +61,18 @@
         media.appendChild(cover);
       }
 
+      /* Poster meta (all card styles) */
+      media.appendChild(el("span", "cover-top",
+        '<span class="cover-idx">#' + (idx + 1 < 10 ? "0" : "") + (idx + 1) + "</span>" +
+        '<span class="cover-year">' + esc(p.year) + "</span>"
+      ));
+      media.appendChild(el("span", "cover-foot",
+        (p.tech || []).slice(0, 4).map(function (t) {
+          return '<span class="cover-tech">' + esc(t) + "</span>";
+        }).join("") +
+        ((p.tech || []).length > 4 ? '<span class="cover-tech">+' + ((p.tech || []).length - 4) + "</span>" : "")
+      ));
+
       /* Body */
       var body = el("div", "project-body");
       body.appendChild(el("div", "project-cat",
